@@ -72,6 +72,7 @@ jobs:
             - NO modifiques archivos del repositorio, no hagas commits y no abras PRs.
             - Tu única salida en GitHub son los labels y el comentario de diagnóstico.
             - Si la información es insuficiente, dilo explícitamente en el diagnóstico en lugar de inventar detalles.
+            - El comentario debe estar escrito en Markdown válido que GitHub pueda renderizar: usa encabezados o negritas para las secciones, listas con `-`, código en backticks (`` `archivo` ``) y bloques de código con triple backtick y el lenguaje indicado cuando muestres fragmentos. No uses HTML salvo la marca `<!-- claude-triage -->`.
 
           # Solo se permiten los comandos necesarios para leer el issue, aplicar labels y comentar
           claude_args: '--allowedTools "Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh api:*),Read,Grep,Glob"'
