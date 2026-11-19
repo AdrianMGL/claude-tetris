@@ -19,7 +19,7 @@ The whole game lives in three files that cooperate through the DOM:
 
 ### Board and pieces
 
-- The board is a `ROWS × COLS` (20 × 10) array of numbers. `0` means empty; `1–7` is the color index into `COLORS`, which also identifies the piece type (I, O, T, S, Z, J, L).
+- The board is a `ROWS × COLS` (20 × 10) array of numbers. `0` means empty; `1–8` is the color index into `COLORS`, which also identifies the piece type (I, O, T, S, Z, J, L, and 8 = the `+` pentomino). The pentomino is only generated with probability `PENTOMINO_CHANCE` in `randomPiece()`; the other seven are picked uniformly from the remaining share.
 - Each piece is a square matrix in `PIECES` (index = type). `current` is `{ type, shape, x, y }`. `x`/`y` is the top-left of the matrix in board coordinates, and cells with value `0` in the matrix are ignored.
 - `collide(shape, x, y)` is the single source of truth for legality. Movement, rotation, drop, ghost projection, and spawn all go through it. Any new movement rule should use it too.
 
