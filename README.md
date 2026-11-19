@@ -152,12 +152,18 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ---
 
+## Tema claro / oscuro
+
+El botón con iconos (luna/sol) junto al título cambia el tema. Por defecto es oscuro; si el usuario ya eligió uno se usa ese (`localStorage`), y si no, el del sistema (`prefers-color-scheme`).
+
+---
+
 ## Estructura del proyecto
 
 ```
 03-tetris/
 ├── index.html      # Estructura del DOM y canvas
-├── style.css       # Estilos del juego (dark theme)
+├── style.css       # Estilos del juego (tema oscuro/claro con variables CSS)
 ├── game.js         # Toda la lógica del Tetris (~300 líneas)
 └── README.md
 ```
