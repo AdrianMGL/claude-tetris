@@ -13,7 +13,7 @@ There is no build step, package manager, linter, or test suite. The project is v
 
 The whole game lives in three files that cooperate through the DOM:
 
-- `index.html` defines the layout: a `<canvas id="board">` (300×600), a side panel with score/lines/level and a `<canvas id="next-canvas">` preview, and the pause/game-over overlay. It loads `game.js` at the end of `<body>`. The element IDs are the contract `game.js` depends on (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`). Renaming any of them breaks the game silently at startup.
+- `index.html` defines the layout: a `<canvas id="board">` (300×600), a side panel with score/lines/level and a `<canvas id="next-canvas">` preview, and the pause/game-over overlay. It loads `game.js` at the end of `<body>`. The element IDs are the contract `game.js` depends on (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`, `theme-toggle`). Renaming any of them breaks the game silently at startup.
 - `style.css` is presentation only. It does not affect game logic.
 - `game.js` holds all logic and state in top-level `let` variables (`board`, `current`, `next`, `score`, `lines`, `level`, `paused`, `gameOver`, `dropInterval`, `dropAccum`, `lastTime`, `animId`). There are no modules, classes, or build outputs.
 
@@ -46,6 +46,11 @@ The whole game lives in three files that cooperate through the DOM:
 
 - `draw()` redraws the whole board each frame: grid, locked blocks, ghost piece (drawn at alpha 0.2 at `ghostY()`), then the current piece. `drawNext()` is called only from `spawn()`, so the preview updates on spawn, not every frame.
 - `updateHUD()` must be called after any change to score, lines, or level. Keyboard handling calls it once at the end of the handler, but the gravity and lock paths rely on `clearLines()`/`softDrop()` to call it themselves.
+
+### Theme
+
+- Colors live in CSS variables: `:root` is dark (default) and `:root[data-theme="light"]` overrides them. A small inline script in `<head>` sets `data-theme` before paint (order: `localStorage['theme']`, then `prefers-color-scheme`, then dark).
+- `#theme-toggle` sits next to the title and shows only SVG icons (moon/sun). `applyTheme()` in `game.js` sets the theme, reads `--grid` into `gridColor` (the canvas grid is drawn in JS), saves the choice, and repaints with `draw()`/`drawNext()` so it also works while paused.
 
 ## Conventions and gotchas
 

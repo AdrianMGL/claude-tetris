@@ -35,6 +35,7 @@ const nextCtx = nextCanvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const linesEl = document.getElementById('lines');
 const levelEl = document.getElementById('level');
+const themeToggle = document.getElementById('theme-toggle');
 const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
@@ -168,8 +169,24 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
   context.globalAlpha = 1;
 }
 
+let gridColor = '#22222e';
+
+function applyTheme(theme, persist) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  const isLight = theme === 'light';
+  themeToggle.setAttribute('aria-checked', String(isLight));
+  themeToggle.setAttribute('aria-label', isLight ? 'Tema oscuro' : 'Tema claro');
+  gridColor = getComputedStyle(root).getPropertyValue('--grid').trim() || gridColor;
+  if (persist) {
+    try { localStorage.setItem('theme', theme); } catch (e) {}
+  }
+  // Repinta: en pausa o game over el bucle no corre
+  if (current && next) { draw(); drawNext(); }
+}
+
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -274,6 +291,19 @@ function init() {
   animId = requestAnimationFrame(loop);
 }
 
+themeToggle.addEventListener('click', () => {
+  applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
+  themeToggle.blur(); // evita que Space active el botón en vez de la caída dura
+});
+
+// Sigue el tema del sistema mientras no haya una elección manual
+const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+lightQuery.addEventListener('change', e => {
+  let saved = null;
+  try { saved = localStorage.getItem('theme'); } catch (err) {}
+  if (!saved) applyTheme(e.matches ? 'light' : 'dark', false);
+});
+
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyP') { togglePause(); return; }
   if (paused || gameOver) return;
@@ -302,3 +332,4 @@ document.addEventListener('keydown', e => {
 restartBtn.addEventListener('click', init);
 
 init();
+applyTheme(document.documentElement.dataset.theme || 'dark', false);

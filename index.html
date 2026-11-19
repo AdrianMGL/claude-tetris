@@ -4,10 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TETRIS ARCADE</title>
+  <script>
+    // Aplica el tema antes de pintar para evitar parpadeo
+    (function () {
+      var theme = 'dark';
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') theme = saved;
+        else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
+      } catch (e) {}
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="wrapper">
+    <div class="title-bar">
     <h1 class="game-title" aria-label="TETRIS ARCADE">
       <span aria-hidden="true" style="--c:#e57373;--i:0">T</span>
       <span aria-hidden="true" style="--c:#ffb74d;--i:1">E</span>
@@ -23,6 +36,16 @@
       <span aria-hidden="true" style="--c:#81c784;--i:10">D</span>
       <span aria-hidden="true" style="--c:#4dd0e1;--i:11">E</span>
     </h1>
+    <button id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Tema claro" title="Cambiar tema">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+    </button>
+    </div>
 
     <div class="stage">
     <div class="game-container">
