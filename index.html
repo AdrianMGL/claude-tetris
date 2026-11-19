@@ -3,11 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tetris</title>
+  <title>TETRIS ARCADE</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="wrapper">
+    <h1 class="game-title" aria-label="TETRIS ARCADE">
+      <span aria-hidden="true" style="--c:#e57373;--i:0">T</span>
+      <span aria-hidden="true" style="--c:#ffb74d;--i:1">E</span>
+      <span aria-hidden="true" style="--c:#fff176;--i:2">T</span>
+      <span aria-hidden="true" style="--c:#81c784;--i:3">R</span>
+      <span aria-hidden="true" style="--c:#4dd0e1;--i:4">I</span>
+      <span aria-hidden="true" style="--c:#7aa2f7;--i:5">S</span>
+      <span aria-hidden="true" class="gap"> </span>
+      <span aria-hidden="true" style="--c:#ba68c8;--i:6">A</span>
+      <span aria-hidden="true" style="--c:#e57373;--i:7">R</span>
+      <span aria-hidden="true" style="--c:#ffb74d;--i:8">C</span>
+      <span aria-hidden="true" style="--c:#fff176;--i:9">A</span>
+      <span aria-hidden="true" style="--c:#81c784;--i:10">D</span>
+      <span aria-hidden="true" style="--c:#4dd0e1;--i:11">E</span>
+    </h1>
+
+    <div class="stage">
     <div class="game-container">
       <canvas id="board" width="300" height="600"></canvas>
 
@@ -49,6 +66,7 @@
         <p id="overlay-score"></p>
         <button id="restart-btn">Reiniciar</button>
       </div>
+    </div>
     </div>
   </div>
 
