@@ -33,14 +33,15 @@ The whole game lives in three files that cooperate through the DOM:
 
 ### Input and pause
 
-- All keyboard input is one `keydown` listener. `KeyP` toggles pause and is handled before the pause/game-over guard, so it works in both states. Other keys are ignored while `paused` or `gameOver`.
+- All keyboard input is one `keydown` listener. `KeyP` and `Escape` toggle pause and are handled before the pause/game-over guard, so they work in both states. Other keys are ignored while `paused` or `gameOver`, which also blocks game input while the pause menu is open.
+- The pause menu (`#pause-menu`, separate from the game-over `#overlay`) has Reanudar, Reiniciar (calls `init()`), Ver controles (a second view inside the same overlay), and a level selector (`#start-level`) that only affects the next game.
 - Pause works by cancelling the animation frame. Resume calls `loop()` directly with a fresh `lastTime`. Pause does not stop the game clock in `dropAccum`, so changes to pause behavior should keep `lastTime` and `dropAccum` consistent.
 - Rotation (`tryRotate`) tries the rotated shape at kick offsets `[0, -1, 1, -2, 2]` and keeps the first one that doesn't collide.
 
 ### Scoring and speed
 
 - Line clears score `LINE_SCORES[n] × level`. Soft drop adds 1 per row. Hard drop adds 2 per row.
-- `level = floor(lines / 10) + 1`. `dropInterval = max(100, 1000 − (level − 1) × 90)` ms. `clearLines()` is the only place that changes these values after `init()`.
+- `level = startLevel + floor(lines / 10)`. `dropInterval = speedFor(level)` = `max(100, 1000 − (level − 1) × 90)` ms. `startLevel` is copied from `nextStartLevel` (set by the pause menu's level selector) in `init()`. `clearLines()` is the only place that changes `level` and `dropInterval` after `init()`.
 
 ### Rendering
 
