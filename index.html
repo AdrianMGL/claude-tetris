@@ -83,10 +83,40 @@
       </aside>
     </div>
 
+    <div id="start-overlay" class="overlay">
+      <div class="overlay-box">
+        <p class="overlay-text">Pulsa Jugar para empezar</p>
+        <button id="start-btn" class="menu-btn" type="button">Jugar</button>
+        <section class="records" data-records>
+          <h2 class="records-title">RÉCORDS</h2>
+          <ol class="records-list"></ol>
+          <p class="records-empty">Aún no hay récords</p>
+          <p class="records-stats"></p>
+          <button type="button" class="reset-records">Borrar récords</button>
+        </section>
+      </div>
+    </div>
+
     <div id="overlay" class="overlay hidden">
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+        <div id="gameover-extra" class="hidden">
+          <form id="name-form" class="name-form hidden" autocomplete="off">
+            <label for="name-input">Tu nombre (para el récord)</label>
+            <div class="name-row">
+              <input id="name-input" type="text" maxlength="12" placeholder="Anónimo" />
+              <button type="submit">Guardar</button>
+            </div>
+          </form>
+          <section class="records" data-records>
+            <h2 class="records-title">RÉCORDS</h2>
+            <ol class="records-list"></ol>
+            <p class="records-empty">Aún no hay récords</p>
+            <p class="records-stats"></p>
+            <button type="button" class="reset-records">Borrar récords</button>
+          </section>
+        </div>
         <button id="restart-btn" class="menu-btn">Reiniciar</button>
       </div>
     </div>
