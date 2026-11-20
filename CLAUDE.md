@@ -13,9 +13,9 @@ There is no build step, package manager, linter, or test suite. The project is v
 
 The whole game lives in three files that cooperate through the DOM:
 
-- `index.html` defines the layout: a `<canvas id="board">` (300×600), a side panel with score/lines/level and a `<canvas id="next-canvas">` preview, and the pause/game-over overlay. It loads `game.js` at the end of `<body>`. The element IDs are the contract `game.js` depends on (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`, `theme-toggle`). Renaming any of them breaks the game silently at startup.
-- `style.css` is presentation only. It does not affect game logic.
-- `game.js` holds all logic and state in top-level `let` variables (`board`, `current`, `next`, `score`, `lines`, `level`, `paused`, `gameOver`, `dropInterval`, `dropAccum`, `lastTime`, `animId`). There are no modules, classes, or build outputs.
+- `index.html` defines the layout: a `<canvas id="board">` (300×600), a side panel with score/lines/level and a `<canvas id="next-canvas">` preview, the game-over overlay (`#overlay`), and the pause menu (`#pause-menu`, with a main panel `#pause-main` and a controls panel `#pause-controls`). It loads `game.js` at the end of `<body>`. The element IDs are the contract `game.js` depends on (`board`, `next-canvas`, `score`, `lines`, `level`, `overlay`, `overlay-title`, `overlay-score`, `restart-btn`, `theme-toggle`, `pause-menu`, `pause-main`, `pause-controls`, `resume-btn`, `pause-restart-btn`, `controls-btn`, `controls-back-btn`, `start-level`). Renaming any of them breaks the game silently at startup.
+- `style.css` is presentation only. It does not affect game logic. Overlay buttons share the `.menu-btn` class; `.hidden` hides an overlay or an overlay panel.
+- `game.js` holds all logic and state in top-level `let` variables (`board`, `current`, `next`, `score`, `lines`, `level`, `startLevel`, `paused`, `gameOver`, `dropInterval`, `dropAccum`, `lastTime`, `animId`). There are no modules, classes, or build outputs.
 
 ### Board and pieces
 
@@ -25,7 +25,7 @@ The whole game lives in three files that cooperate through the DOM:
 
 ### Lifecycle
 
-- `init()` resets all state, then creates `next` and calls `spawn()`, which promotes `next` to `current` and generates a new `next`. `init()` is also the restart handler. It cancels any running animation frame before starting a new one.
+- `init()` resets all state (`level = startLevel`, `dropInterval` from the same formula as `clearLines()`), hides both `#overlay` and `#pause-menu`, then creates `next` and calls `spawn()`, which promotes `next` to `current` and generates a new `next`. `init()` is also the restart handler for both the game-over button and the pause menu's Reiniciar. It cancels any running animation frame before starting a new one.
 - Gravity runs in `loop(ts)` via `requestAnimationFrame`. It accumulates elapsed time in `dropAccum` and moves the piece down when it passes `dropInterval`.
 - When a piece can't move down, `lockPiece()` runs in this order: `merge()` writes the piece into `board`, `clearLines()` removes full rows and updates score/level/speed, then `spawn()` brings in the next piece.
 - Hard drop (`hardDrop`) and soft drop (`softDrop`) also end in `lockPiece()` when they reach the bottom. Hard drop jumps to `ghostY()` first.
@@ -33,14 +33,15 @@ The whole game lives in three files that cooperate through the DOM:
 
 ### Input and pause
 
-- All keyboard input is one `keydown` listener. `KeyP` toggles pause and is handled before the pause/game-over guard, so it works in both states. Other keys are ignored while `paused` or `gameOver`.
-- Pause works by cancelling the animation frame. Resume calls `loop()` directly with a fresh `lastTime`. Pause does not stop the game clock in `dropAccum`, so changes to pause behavior should keep `lastTime` and `dropAccum` consistent.
+- All keyboard input is one `keydown` listener. `KeyP` and `Escape` toggle pause and are handled before the pause/game-over guard, so they work in both states. Other keys are ignored while `paused` or `gameOver`, which also keeps game keys inert while the menu is open.
+- `togglePause()` is the single entry point for pause and resume. Pausing cancels the animation frame and shows `#pause-menu` with its main panel (`showPauseMain()`). Resuming goes through `resumeGame()`, which hides the menu, blurs the focused control (so arrows do not change the level selector), sets a fresh `lastTime`, and calls `loop()`. Pause does not stop the game clock in `dropAccum`, so changes to pause behavior should keep `lastTime` and `dropAccum` consistent.
+- Pause menu options: Reanudar (`togglePause()`), Reiniciar (`init()`), Ver controles (swaps to `#pause-controls`; Volver swaps back), and the Nivel inicial `<select>` (1–10), which sets `startLevel` and takes effect on the next `init()`, not on the current game. Every button blurs itself after click so Space does not re-activate it.
 - Rotation (`tryRotate`) tries the rotated shape at kick offsets `[0, -1, 1, -2, 2]` and keeps the first one that doesn't collide.
 
 ### Scoring and speed
 
 - Line clears score `LINE_SCORES[n] × level`. Soft drop adds 1 per row. Hard drop adds 2 per row.
-- `level = floor(lines / 10) + 1`. `dropInterval = max(100, 1000 − (level − 1) × 90)` ms. `clearLines()` is the only place that changes these values after `init()`.
+- `level = startLevel + floor(lines / 10)`, where `startLevel` (default 1) is chosen in the pause menu. `dropInterval = dropIntervalFor(level)` with `dropIntervalFor(l) = max(100, 1000 − (l − 1) × 90)` ms. `init()` applies the same formula with `level = startLevel`; `clearLines()` is the only place that changes these values during a game.
 
 ### Rendering
 
@@ -54,7 +55,7 @@ The whole game lives in three files that cooperate through the DOM:
 
 ## Conventions and gotchas
 
-- The UI text is in Spanish (`GAME OVER`, `PAUSA`, `Puntuación`, `Reiniciar`, control labels). Keep new user-facing strings consistent with that. The README is in Spanish too.
+- The UI text is in Spanish (`GAME OVER`, `PAUSA`, `CONTROLES`, `Puntuación`, `Reiniciar`, `Reanudar`, `Nivel inicial`, control labels). Keep new user-facing strings consistent with that. The README is in Spanish too.
 - `game.js` runs with `'use strict'` and loads at the end of `<body>`, so DOM lookups at the top of the file are safe. Moving the script tag into `<head>` without `defer` will break it.
 - Canvas size is set in both HTML (`width`/`height` attributes) and in the constants (`COLS`, `ROWS`, `BLOCK`). Changing one requires changing the others (see the Personalización section of `README.md`).
 - The `.gitignore` entry is `.DS_STORE`, but macOS creates `.DS_Store`. As written, the rule does not match those files.
