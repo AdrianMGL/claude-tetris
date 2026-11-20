@@ -25,7 +25,8 @@ The whole game lives in three files that cooperate through the DOM:
 
 ### Lifecycle
 
-- `init()` resets all state, then creates `next` and calls `spawn()`, which promotes `next` to `current` and generates a new `next`. `init()` is also the restart handler. It cancels any running animation frame before starting a new one.
+- On load, `resetState()` prepares a board and `showStartScreen()` shows the overlay with the records and a "Jugar" button; `started` stays `false` and no loop runs until the player clicks it. `init()` starts a game: it cancels any running animation frame, calls `resetState()` (which creates `next` and calls `spawn()`, promoting `next` to `current`), and starts the loop. `init()` is also the restart handler.
+- Records live in `localStorage['tetris-records']` as `{ top: [{name, score}] (max 5), bestCombo, maxLines }`. `endGame()` updates `bestCombo`/`maxLines`, and sets `pendingRecord` if the score enters the top 5; the name form submits it via `addRecord()`. `combo` counts consecutive locks that clear at least one line.
 - Gravity runs in `loop(ts)` via `requestAnimationFrame`. It accumulates elapsed time in `dropAccum` and moves the piece down when it passes `dropInterval`.
 - When a piece can't move down, `lockPiece()` runs in this order: `merge()` writes the piece into `board`, `clearLines()` removes full rows and updates score/level/speed, then `spawn()` brings in the next piece.
 - Hard drop (`hardDrop`) and soft drop (`softDrop`) also end in `lockPiece()` when they reach the bottom. Hard drop jumps to `ghostY()` first.
