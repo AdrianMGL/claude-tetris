@@ -45,8 +45,17 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const pauseMenu = document.getElementById('pause-menu');
+const pauseMain = document.getElementById('pause-main');
+const pauseControls = document.getElementById('pause-controls');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseRestartBtn = document.getElementById('pause-restart-btn');
+const controlsBtn = document.getElementById('controls-btn');
+const controlsBackBtn = document.getElementById('controls-back-btn');
+const startLevelSel = document.getElementById('start-level');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let startLevel = 1; // nivel con el que empieza la siguiente partida (lo elige el menú de pausa)
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -112,10 +121,14 @@ function clearLines() {
   if (cleared) {
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    level = startLevel + Math.floor(lines / 10);
+    dropInterval = dropIntervalFor(level);
     updateHUD();
   }
+}
+
+function dropIntervalFor(lvl) {
+  return Math.max(100, 1000 - (lvl - 1) * 90);
 }
 
 function ghostY() {
@@ -252,14 +265,26 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
-    lastTime = performance.now();
-    loop(lastTime);
+    resumeGame();
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    showPauseMain();
+    pauseMenu.classList.remove('hidden');
   }
+}
+
+function resumeGame() {
+  pauseMenu.classList.add('hidden');
+  // Quita el foco de cualquier control del menú: si queda el selector enfocado,
+  // las flechas cambiarían el nivel en vez de mover la pieza
+  if (document.activeElement) document.activeElement.blur();
+  lastTime = performance.now();
+  loop(lastTime);
+}
+
+function showPauseMain() {
+  pauseMain.classList.remove('hidden');
+  pauseControls.classList.add('hidden');
 }
 
 function loop(ts) {
@@ -282,19 +307,22 @@ function loop(ts) {
 }
 
 function init() {
+  // Lee el selector aquí: el navegador puede restaurar su valor al recargar sin disparar 'change'
+  startLevel = Number(startLevelSel.value);
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = startLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = dropIntervalFor(level);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  pauseMenu.classList.add('hidden');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -313,7 +341,7 @@ lightQuery.addEventListener('change', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP') { togglePause(); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
@@ -337,7 +365,33 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-restartBtn.addEventListener('click', init);
+restartBtn.addEventListener('click', () => {
+  restartBtn.blur();
+  init();
+});
+
+// Menú de pausa: cada botón quita el foco tras el clic para que Space no lo reactive
+resumeBtn.addEventListener('click', () => {
+  resumeBtn.blur();
+  togglePause();
+});
+pauseRestartBtn.addEventListener('click', () => {
+  pauseRestartBtn.blur();
+  init();
+});
+controlsBtn.addEventListener('click', () => {
+  controlsBtn.blur();
+  pauseMain.classList.add('hidden');
+  pauseControls.classList.remove('hidden');
+});
+controlsBackBtn.addEventListener('click', () => {
+  controlsBackBtn.blur();
+  showPauseMain();
+});
+startLevelSel.addEventListener('change', () => {
+  startLevel = Number(startLevelSel.value);
+  startLevelSel.blur();
+});
 
 init();
 applyTheme(document.documentElement.dataset.theme || 'dark', false);

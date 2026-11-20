@@ -202,7 +202,8 @@ kbd {
   border-radius: 4px;
 }
 
-.overlay.hidden {
+.overlay.hidden,
+.overlay-box.hidden {
   display: none;
 }
 
@@ -227,8 +228,14 @@ kbd {
   color: var(--accent);
 }
 
-#restart-btn {
-  margin-top: 8px;
+.overlay-heading {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+.menu-btn {
   background: var(--accent);
   color: var(--on-accent);
   border: none;
@@ -241,8 +248,39 @@ kbd {
   transition: background 0.15s;
 }
 
-#restart-btn:hover {
+.menu-btn:hover {
   background: var(--accent-hover);
+}
+
+.menu-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#restart-btn {
+  margin-top: 8px;
+}
+
+/* ---- Menú de pausa: selector de nivel inicial ---- */
+.level-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.level-picker select {
+  background: var(--kbd-bg);
+  color: var(--text);
+  border: 1px solid var(--kbd-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* ---- Cabecera con toggle de tema ---- */
