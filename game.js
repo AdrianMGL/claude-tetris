@@ -28,6 +28,16 @@ const PIECES = [
   [[0,8,0],[8,8,8],[0,8,0]],                  // + (pentominó)
 ];
 
+// Skins: paleta (índice = tipo de pieza), color de rejilla (null = variable CSS --grid)
+// y función que dibuja un bloque en (px, py) con tamaño s.
+const SKINS = {
+  retro:  { label: 'Retro',     colors: COLORS, grid: null, render: renderRetro },
+  neon:   { label: 'Neon',      colors: [null, '#00fff7', '#fff200', '#d400ff', '#39ff14', '#ff1f4b', '#1f6bff', '#ff9500', '#ff2bd6'], grid: '#14142b', render: renderNeon },
+  pastel: { label: 'Pastel',    colors: [null, '#a0e7e5', '#fff5ba', '#d4b8e0', '#b5ead7', '#ffb7b2', '#b5d8f7', '#ffdac1', '#f8bbd9'], grid: null, render: renderPastel },
+  pixel:  { label: 'Pixel art', colors: [null, '#00e5ff', '#ffea00', '#aa00ff', '#00e676', '#ff1744', '#2979ff', '#ff9100', '#ff4081'], grid: null, render: renderPixel },
+};
+let skin = SKINS.retro;
+
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
 // Probabilidad de que la siguiente pieza sea el pentominó en cruz (tipo 8)
@@ -41,6 +51,7 @@ const scoreEl = document.getElementById('score');
 const linesEl = document.getElementById('lines');
 const levelEl = document.getElementById('level');
 const themeToggle = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
@@ -289,14 +300,68 @@ function updateHUD() {
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  skin.render(context, x * size, y * size, size, skin.colors[colorIndex]);
+  context.shadowBlur = 0;
   context.globalAlpha = 1;
+}
+
+function renderRetro(c, px, py, s, color) {
+  c.fillStyle = color;
+  c.fillRect(px + 1, py + 1, s - 2, s - 2);
+  // highlight
+  c.fillStyle = 'rgba(255,255,255,0.12)';
+  c.fillRect(px + 1, py + 1, s - 2, 4);
+}
+
+function renderNeon(c, px, py, s, color) {
+  const x = px + 3, y = py + 3, w = s - 6;
+  c.shadowColor = color;
+  c.shadowBlur = s * 0.6;
+  c.fillStyle = color;
+  c.fillRect(x, y, w, w);
+  // núcleo brillante sin sombra
+  c.shadowBlur = 0;
+  c.fillStyle = 'rgba(255,255,255,0.45)';
+  c.fillRect(x + 4, y + 4, w - 8, w - 8);
+}
+
+function roundedPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function renderPastel(c, px, py, s, color) {
+  const x = px + 2, y = py + 2, w = s - 4;
+  roundedPath(c, x, y, w, w, s * 0.25);
+  c.fillStyle = color;
+  c.fill();
+  c.strokeStyle = 'rgba(255,255,255,0.7)';
+  c.lineWidth = 1.5;
+  c.stroke();
+}
+
+function renderPixel(c, px, py, s, color) {
+  const x = px + 1, y = py + 1, w = s - 2, q = w / 4;
+  c.fillStyle = color;
+  c.fillRect(x, y, w, w);
+  // damero de píxeles más oscuros
+  c.fillStyle = 'rgba(0,0,0,0.12)';
+  for (let i = 0; i < 4; i++)
+    for (let j = 0; j < 4; j++)
+      if ((i + j) % 2 === 1) c.fillRect(x + i * q, y + j * q, q, q);
+  // bisel: luz arriba-izquierda, sombra abajo-derecha
+  c.fillStyle = 'rgba(255,255,255,0.35)';
+  c.fillRect(x, y, w, 2);
+  c.fillRect(x, y, 2, w);
+  c.fillStyle = 'rgba(0,0,0,0.35)';
+  c.fillRect(x, y + w - 2, w, 2);
+  c.fillRect(x + w - 2, y, 2, w);
 }
 
 let gridColor = '#22222e';
@@ -307,9 +372,34 @@ function applyTheme(theme, persist) {
   const isLight = theme === 'light';
   themeToggle.setAttribute('aria-checked', String(isLight));
   themeToggle.setAttribute('aria-label', isLight ? 'Tema oscuro' : 'Tema claro');
-  gridColor = getComputedStyle(root).getPropertyValue('--grid').trim() || gridColor;
+  refreshGridColor();
   if (persist) {
     try { localStorage.setItem('theme', theme); } catch (e) {}
+  }
+  // Repinta: en pausa o game over el bucle no corre
+  if (current && next) { draw(); drawNext(); }
+}
+
+function refreshGridColor() {
+  gridColor = skin.grid || getComputedStyle(document.documentElement).getPropertyValue('--grid').trim() || gridColor;
+}
+
+function loadSkin() {
+  try {
+    const saved = localStorage.getItem('skin');
+    if (saved && SKINS[saved]) return saved;
+  } catch (e) {}
+  return 'retro';
+}
+
+function applySkin(name, persist) {
+  if (!SKINS[name]) name = 'retro';
+  skin = SKINS[name];
+  document.documentElement.dataset.skin = name;
+  skinSelect.value = name;
+  refreshGridColor();
+  if (persist) {
+    try { localStorage.setItem('skin', name); } catch (e) {}
   }
   // Repinta: en pausa o game over el bucle no corre
   if (current && next) { draw(); drawNext(); }
@@ -499,6 +589,11 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
+skinSelect.addEventListener('change', () => {
+  applySkin(skinSelect.value, true);
+  skinSelect.blur(); // evita que Space abra el selector en vez de la caída dura
+});
+
 restartBtn.addEventListener('click', init);
 pauseRestartBtn.addEventListener('click', init);
 resumeBtn.addEventListener('click', togglePause);
@@ -535,6 +630,7 @@ resetRecordsBtn.addEventListener('click', () => {
   renderRecords(-1);
 });
 
+applySkin(loadSkin(), false); // antes de resetState(), que ya dibuja la preview
 resetState();
 showStartScreen();
 applyTheme(document.documentElement.dataset.theme || 'dark', false);
