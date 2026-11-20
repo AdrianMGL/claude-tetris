@@ -5,15 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TETRIS ARCADE</title>
   <script>
-    // Aplica el tema antes de pintar para evitar parpadeo
+    // Aplica tema y skin antes de pintar para evitar parpadeo
     (function () {
       var theme = 'dark';
+      var skin = 'retro';
       try {
         var saved = localStorage.getItem('theme');
         if (saved === 'light' || saved === 'dark') theme = saved;
         else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
       } catch (e) {}
+      try {
+        var savedSkin = localStorage.getItem('skin');
+        if (savedSkin === 'neon' || savedSkin === 'pastel' || savedSkin === 'pixel') skin = savedSkin;
+      } catch (e) {}
       document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.skin = skin;
     })();
   </script>
   <link rel="stylesheet" href="style.css" />
@@ -45,6 +51,12 @@
         <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
       </svg>
     </button>
+    <select id="skin-select" aria-label="Estilo visual" title="Estilo visual">
+      <option value="retro">Retro</option>
+      <option value="neon">Neón</option>
+      <option value="pastel">Pastel</option>
+      <option value="pixel">Pixel art</option>
+    </select>
     </div>
 
     <div class="stage">
